@@ -1,0 +1,111 @@
+--[[
+    RichText Pro Hijacker v2.1
+    Author: hashbrownxeno
+    Features: Draggable UI, Font Dropdown, <p> Tag Parser
+--]]
+
+local sg = Instance.new("ScreenGui", game.CoreGui)
+sg.Name = "XenoRichText"
+
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(0, 300, 0, 250)
+main.Position = UDim2.new(0.5, -150, 0.4, 0)
+main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+
+-- Top Bar
+local top = Instance.new("Frame", main)
+top.Size = UDim2.new(1, 0, 0, 35)
+top.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+
+local title = Instance.new("TextLabel", top)
+title.Size = UDim2.new(1, -40, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.Text = "RICHTEXT EXECUTOR"
+title.TextColor3 = Color3.fromRGB(255, 165, 0) -- Amber Glow
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+
+local close = Instance.new("TextButton", top)
+close.Size = UDim2.new(0, 35, 0, 35)
+close.Position = UDim2.new(1, -35, 0, 0)
+close.Text = "X"
+close.TextColor3 = Color3.new(1,1,1)
+close.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+close.MouseButton1Click:Connect(function() sg:Destroy() end)
+
+-- Input Box
+local input = Instance.new("TextBox", main)
+input.Size = UDim2.new(0.9, 0, 0, 80)
+input.Position = UDim2.new(0.05, 0, 0.2, 0)
+input.PlaceholderText = "Use <p>H</p><p>I</p> style here..."
+input.Text = ""
+input.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+input.TextColor3 = Color3.new(1,1,1)
+input.TextWrapped = true
+input.ClearTextOnFocus = false
+
+-- Font Dropdown
+local selectedFont = "Michroma"
+local dropBtn = Instance.new("TextButton", main)
+dropBtn.Size = UDim2.new(0.42, 0, 0, 35)
+dropBtn.Position = UDim2.new(0.05, 0, 0.58, 0)
+dropBtn.Text = "Font: " .. selectedFont
+dropBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+dropBtn.TextColor3 = Color3.new(1,1,1)
+
+local dropFrame = Instance.new("ScrollingFrame", main)
+dropFrame.Size = UDim2.new(0.42, 0, 0, 100)
+dropFrame.Position = UDim2.new(0.05, 0, 0.72, 0)
+dropFrame.Visible = false
+dropFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+dropFrame.ZIndex = 10
+
+local fonts = {"Michroma", "Bangers", "Arcade", "SciFi", "Fantasy", "Antique"}
+for i, f in pairs(fonts) do
+    local b = Instance.new("TextButton", dropFrame)
+    b.Size = UDim2.new(1, 0, 0, 25)
+    b.Position = UDim2.new(0, 0, 0, (i-1)*25)
+    b.Text = f
+    b.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    b.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+    b.MouseButton1Click:Connect(function()
+        selectedFont = f
+        dropBtn.Text = "Font: " .. f
+        dropFrame.Visible = false
+    end)
+end
+dropBtn.MouseButton1Click:Connect(function() dropFrame.Visible = not dropFrame.Visible end)
+
+-- Execute Button
+local send = Instance.new("TextButton", main)
+send.Size = UDim2.new(0.42, 0, 0, 35)
+send.Position = UDim2.new(0.53, 0, 0.58, 0)
+send.Text = "FIRE REMOTE"
+send.BackgroundColor3 = Color3.fromRGB(255, 140, 0)
+send.Font = Enum.Font.GothamBold
+
+-- THE PARSER LOGIC
+send.MouseButton1Click:Connect(function()
+    local text = input.Text
+    -- Convert <p> to nothing and </p> to a line break
+    local parsed = text:gsub("<p>", ""):gsub("</p>", "\n")
+    
+    -- Wrap in the full RichText payload
+    local fullPayload = '<font face="'..selectedFont..'"><font size="30"><b><font color="#FFA500">'..parsed..'</font></b></font></font>'
+    
+    local args = {
+        [1] = fullPayload,
+        [2] = "All"
+    }
+    
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("ModernChatRemote")
+    if remote then
+        remote:FireServer(unpack(args))
+    else
+        warn("Remote not found! Devs might have renamed it.")
+    end
+end)
