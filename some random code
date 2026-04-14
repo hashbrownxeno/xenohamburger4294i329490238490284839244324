@@ -1,105 +1,155 @@
---[[
-    NIGHTFALL ELITE: HIJACKER v2.8 (STABLE & WIRED)
-    Features: Auto-Char Parser, Arcade Theme, Remote Integration
---]]
+local Players = game:GetService("Players")
 
--- CONFIG: Change these to match your target game's remote
-local REMOTE_NAME = "SayMessageRequest" 
-local REMOTE_PATH = game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents") 
-local TARGET_REMOTE = REMOTE_PATH and REMOTE_PATH:FindFirstChild(REMOTE_NAME)
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
-local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
-sg.Name = "Xeno_Elite_Hijacker"
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CoolInputGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
 
--- MAIN FRAME (Solid Red Border to prevent rendering crashes)
-local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 420, 0, 350)
-main.Position = UDim2.new(0.5, -210, 0.4, -175)
-main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-main.BorderSizePixel = 2
-main.BorderColor3 = Color3.fromRGB(255, 0, 0)
-main.Active = true
-main.Draggable = true
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 420, 0, 260)
+frame.Position = UDim2.new(0.5, -210, 0.5, -130)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
 
--- TOP BAR
-local top = Instance.new("Frame", main)
-top.Size = UDim2.new(1, 0, 0, 40)
-top.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
-top.BorderSizePixel = 0
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 18)
+corner.Parent = frame
 
-local title = Instance.new("TextLabel", top)
-title.Size = UDim2.new(1, -10, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(255, 80, 120)
+stroke.Parent = frame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -20, 0, 40)
+title.Position = UDim2.new(0, 10, 0, 10)
 title.BackgroundTransparency = 1
-title.Text = "XENO HIJACKER [ARCADE]"
-title.Font = Enum.Font.Arcade
-title.TextColor3 = Color3.fromRGB(255, 0, 0)
-title.TextSize = 22
-title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "Input Text"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
 
--- INPUTS
-local input = Instance.new("TextBox", main)
-input.Size = UDim2.new(0.9, 0, 0, 40)
-input.Position = UDim2.new(0.05, 0, 0.15, 0)
-input.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-input.Font = Enum.Font.Arcade
-input.PlaceholderText = "Type message..."
-input.Text = ""
-input.TextColor3 = Color3.fromRGB(255, 255, 255)
-input.TextSize = 18
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(1, -40, 0, 50)
+textBox.Position = UDim2.new(0, 20, 0, 60)
+textBox.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textBox.PlaceholderText = "Type something..."
+textBox.PlaceholderColor3 = Color3.fromRGB(180, 180, 180)
+textBox.Text = ""
+textBox.ClearTextOnFocus = false
+textBox.TextScaled = true
+textBox.Font = Enum.Font.Gotham
+textBox.Parent = frame
 
-local sizeInput = Instance.new("TextBox", main)
-sizeInput.Size = UDim2.new(0.4, 0, 0, 30)
-sizeInput.Position = UDim2.new(0.05, 0, 0.3, 0)
-sizeInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-sizeInput.Font = Enum.Font.Arcade
-sizeInput.Text = "30"
-sizeInput.TextColor3 = Color3.fromRGB(255, 0, 0)
+local textCorner = Instance.new("UICorner")
+textCorner.CornerRadius = UDim.new(0, 12)
+textCorner.Parent = textBox
 
--- OUTPUT BOX
-local output = Instance.new("TextBox", main)
-output.Size = UDim2.new(0.9, 0, 0, 100)
-output.Position = UDim2.new(0.05, 0, 0.45, 0)
-output.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-output.Font = Enum.Font.Arcade
-output.TextColor3 = Color3.fromRGB(200, 200, 200)
-output.TextSize = 14
-output.TextWrapped = true
-output.ClearTextOnFocus = false
-output.Text = "Parsed text here..."
+local sliderLabel = Instance.new("TextLabel")
+sliderLabel.Size = UDim2.new(1, -40, 0, 24)
+sliderLabel.Position = UDim2.new(0, 20, 0, 130)
+sliderLabel.BackgroundTransparency = 1
+sliderLabel.Text = "Color Slider"
+sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+sliderLabel.TextScaled = true
+sliderLabel.Font = Enum.Font.GothamMedium
+sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+sliderLabel.Parent = frame
 
--- FIRE BUTTON (The Hijacker Trigger)
-local fire = Instance.new("TextButton", main)
-fire.Size = UDim2.new(0.9, 0, 0, 40)
-fire.Position = UDim2.new(0.05, 0, 0.8, 0)
-fire.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-fire.Font = Enum.Font.Arcade
-fire.Text = "EXECUTE HIJACK"
-fire.TextColor3 = Color3.fromRGB(255, 255, 255)
-fire.TextSize = 20
+local sliderBar = Instance.new("Frame")
+sliderBar.Size = UDim2.new(1, -40, 0, 14)
+sliderBar.Position = UDim2.new(0, 20, 0, 165)
+sliderBar.BackgroundColor3 = Color3.fromRGB(70, 70, 90)
+sliderBar.BorderSizePixel = 0
+sliderBar.Parent = frame
 
--- LOGIC: THE AUTO-PARSER
-local function update()
-    local raw = input.Text
-    local sz = sizeInput.Text ~= "" and sizeInput.Text or "30"
-    local parsed = ""
-    for i = 1, #raw do
-        local c = raw:sub(i, i)
-        parsed = parsed .. "<p><font size=\""..sz.."\">" .. c .. "</font></p>"
-    end
-    output.Text = parsed
+local sliderBarCorner = Instance.new("UICorner")
+sliderBarCorner.CornerRadius = UDim.new(1, 0)
+sliderBarCorner.Parent = sliderBar
+
+local sliderFill = Instance.new("Frame")
+sliderFill.Size = UDim2.new(0.5, 0, 1, 0)
+sliderFill.BackgroundColor3 = Color3.fromHSV(0.5, 0.8, 1)
+sliderFill.BorderSizePixel = 0
+sliderFill.Parent = sliderBar
+
+local sliderFillCorner = Instance.new("UICorner")
+sliderFillCorner.CornerRadius = UDim.new(1, 0)
+sliderFillCorner.Parent = sliderFill
+
+local knob = Instance.new("Frame")
+knob.Size = UDim2.new(0, 20, 0, 20)
+knob.AnchorPoint = Vector2.new(0.5, 0.5)
+knob.Position = UDim2.new(0.5, 0, 0.5, 0)
+knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+knob.BorderSizePixel = 0
+knob.Parent = sliderBar
+
+local knobCorner = Instance.new("UICorner")
+knobCorner.CornerRadius = UDim.new(1, 0)
+knobCorner.Parent = knob
+
+local sendButton = Instance.new("TextButton")
+sendButton.Size = UDim2.new(1, -40, 0, 44)
+sendButton.Position = UDim2.new(0, 20, 1, -64)
+sendButton.BackgroundColor3 = Color3.fromRGB(255, 80, 120)
+sendButton.Text = "Send"
+sendButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+sendButton.TextScaled = true
+sendButton.Font = Enum.Font.GothamBold
+sendButton.Parent = frame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 12)
+buttonCorner.Parent = sendButton
+
+local UIS = game:GetService("UserInputService")
+local dragging = false
+local sliderValue = 0.5
+
+local function updateSlider(inputX)
+	local barX = sliderBar.AbsolutePosition.X
+	local barW = sliderBar.AbsoluteSize.X
+	local alpha = math.clamp((inputX - barX) / barW, 0, 1)
+
+	sliderValue = alpha
+	sliderFill.Size = UDim2.new(alpha, 0, 1, 0)
+	knob.Position = UDim2.new(alpha, 0, 0.5, 0)
+
+	local color = Color3.fromHSV(alpha, 0.8, 1)
+	sliderFill.BackgroundColor3 = color
+	sendButton.BackgroundColor3 = color
+	stroke.Color = color
 end
 
-input:GetPropertyChangedSignal("Text"):Connect(update)
-sizeInput:GetPropertyChangedSignal("Text"):Connect(update)
+sliderBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		updateSlider(input.Position.X)
+	end
+end)
 
--- LOGIC: THE REMOTE TRIGGER
-fire.MouseButton1Click:Connect(function()
-    if TARGET_REMOTE then
-        -- This fires the parsed <p> tags into the remote
-        TARGET_REMOTE:FireServer(output.Text, "All")
-        print("Payload Sent: " .. output.Text)
-    else
-        warn("Remote not found! Check REMOTE_NAME at the top.")
-    end
+UIS.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		updateSlider(input.Position.X)
+	end
+end)
+
+UIS.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = false
+	end
+end)
+
+sendButton.MouseButton1Click:Connect(function()
+	print("Sent text:", textBox.Text)
+	sendButton.Text = "Sent: " .. (textBox.Text ~= "" and textBox.Text or "Nothing")
+	task.wait(1.2)
+	sendButton.Text = "Send"
 end)
