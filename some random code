@@ -1,369 +1,315 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "PremiumInputGui"
+screenGui.Name = "NeonGlassGui"
 screenGui.ResetOnSpawn = false
-screenGui.IgnoreGuiInset = true
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
+local hue = 0
 local dragging = false
-local hue = 0.08
+local dragStart
+local startPos
 
-local function create(className, properties, parent)
-	local instance = Instance.new(className)
-	for property, value in pairs(properties) do
-		instance[property] = value
+local function create(className, props, parent)
+	local obj = Instance.new(className)
+	for k, v in pairs(props) do
+		obj[k] = v
 	end
-	instance.Parent = parent
-	return instance
+	obj.Parent = parent
+	return obj
 end
 
-local function getAccentColor()
-	return Color3.fromHSV(hue, 0.75, 1)
+local function accentColor()
+	return Color3.fromHSV(hue, 1, 1)
 end
-
-local function getAccentDark()
-	return getAccentColor():Lerp(Color3.fromRGB(0, 0, 0), 0.35)
-end
-
-local background = create("Frame", {
-	Size = UDim2.fromScale(1, 1),
-	BackgroundColor3 = Color3.fromRGB(8, 10, 16),
-	BorderSizePixel = 0,
-}, screenGui)
-
-create("UIGradient", {
-	Rotation = 35,
-	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(9, 12, 20)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(18, 24, 38)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(7, 9, 15)),
-	}),
-}, background)
-
-local orb1 = create("Frame", {
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0.18, 0.22),
-	Size = UDim2.fromOffset(360, 360),
-	BackgroundColor3 = Color3.fromRGB(255, 120, 90),
-	BackgroundTransparency = 0.84,
-	BorderSizePixel = 0,
-}, background)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, orb1)
-
-local orb2 = create("Frame", {
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0.84, 0.78),
-	Size = UDim2.fromOffset(420, 420),
-	BackgroundColor3 = Color3.fromRGB(255, 200, 80),
-	BackgroundTransparency = 0.87,
-	BorderSizePixel = 0,
-}, background)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, orb2)
 
 local shadow = create("ImageLabel", {
+	Name = "Shadow",
 	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0.5, 0.5),
-	Size = UDim2.fromOffset(610, 390),
+	Position = UDim2.new(0.5, 0, 0.5, 0),
+	Size = UDim2.fromOffset(470, 290),
 	BackgroundTransparency = 1,
-	Image = "rbxassetid://1316045217",
-	ImageTransparency = 0.5,
+	Image = "rbxassetid://6015897843",
+	ImageTransparency = 0.35,
 	ScaleType = Enum.ScaleType.Slice,
-	SliceCenter = Rect.new(10, 10, 118, 118),
-	ZIndex = 1,
+	SliceCenter = Rect.new(49, 49, 450, 450),
+	ZIndex = 0,
 }, screenGui)
 
-local panel = create("Frame", {
+local window = create("Frame", {
+	Name = "Window",
 	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0.5, 0.5),
-	Size = UDim2.fromOffset(540, 330),
-	BackgroundColor3 = Color3.fromRGB(20, 24, 34),
+	Position = UDim2.new(0.5, 0, 0.5, 0),
+	Size = UDim2.fromOffset(430, 250),
+	BackgroundColor3 = Color3.fromRGB(18, 18, 24),
+	BackgroundTransparency = 0.2,
 	BorderSizePixel = 0,
-	ZIndex = 2,
+	ZIndex = 1,
 }, screenGui)
-create("UICorner", {CornerRadius = UDim.new(0, 26)}, panel)
+create("UICorner", {CornerRadius = UDim.new(0, 18)}, window)
+
+create("UIStroke", {
+	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	Thickness = 1,
+	Color = Color3.fromRGB(255, 255, 255),
+	Transparency = 0.82,
+}, window)
 
 create("UIGradient", {
 	Rotation = 90,
 	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 35, 48)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 22, 32)),
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 45)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 24)),
 	}),
-}, panel)
+}, window)
 
-local panelStroke = create("UIStroke", {
-	Color = Color3.fromRGB(255, 255, 255),
-	Transparency = 0.86,
-	Thickness = 1.2,
-}, panel)
+local neon = create("Frame", {
+	Name = "NeonOutline",
+	Size = UDim2.new(1, 6, 1, 6),
+	Position = UDim2.new(0, -3, 0, -3),
+	BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+	BackgroundTransparency = 0.25,
+	BorderSizePixel = 0,
+	ZIndex = 0,
+}, window)
+create("UICorner", {CornerRadius = UDim.new(0, 20)}, neon)
+
+local neonStroke = create("UIStroke", {
+	Thickness = 2,
+	Color = Color3.fromRGB(255, 0, 0),
+	Transparency = 0.15,
+}, neon)
+
+local neonGradient = create("UIGradient", {
+	Rotation = 0,
+	Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 85)),
+		ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 140, 0)),
+		ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
+		ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 140)),
+		ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 170, 255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 0, 255)),
+	}),
+}, neon)
 
 local topBar = create("Frame", {
-	Size = UDim2.new(1, 0, 0, 86),
+	Name = "TopBar",
+	Size = UDim2.new(1, 0, 0, 42),
 	BackgroundTransparency = 1,
 	ZIndex = 3,
-}, panel)
+}, window)
 
 local title = create("TextLabel", {
-	Position = UDim2.fromOffset(28, 22),
-	Size = UDim2.fromOffset(300, 30),
+	Position = UDim2.fromOffset(16, 10),
+	Size = UDim2.fromOffset(220, 22),
 	BackgroundTransparency = 1,
-	Text = "Input Text",
-	TextColor3 = Color3.fromRGB(248, 248, 252),
+	Text = "Neon Input",
+	TextColor3 = Color3.fromRGB(255, 255, 255),
 	TextXAlignment = Enum.TextXAlignment.Left,
 	Font = Enum.Font.GothamBold,
-	TextSize = 30,
+	TextSize = 20,
 	ZIndex = 4,
 }, topBar)
 
-local subtitle = create("TextLabel", {
-	Position = UDim2.fromOffset(30, 54),
-	Size = UDim2.fromOffset(420, 18),
-	BackgroundTransparency = 1,
-	Text = "Clean UI with live color control and a polished send button.",
-	TextColor3 = Color3.fromRGB(150, 157, 175),
-	TextXAlignment = Enum.TextXAlignment.Left,
-	Font = Enum.Font.Gotham,
-	TextSize = 14,
-	ZIndex = 4,
-}, topBar)
-
-local previewChip = create("Frame", {
+local closeButton = create("TextButton", {
+	Name = "CloseButton",
 	AnchorPoint = Vector2.new(1, 0),
-	Position = UDim2.new(1, -28, 28),
-	Size = UDim2.fromOffset(66, 30),
-	BackgroundColor3 = getAccentColor(),
-	BorderSizePixel = 0,
+	Position = UDim2.new(1, -10, 0, 8),
+	Size = UDim2.fromOffset(26, 26),
+	BackgroundColor3 = Color3.fromRGB(255, 70, 90),
+	Text = "X",
+	TextColor3 = Color3.fromRGB(255, 255, 255),
+	Font = Enum.Font.GothamBold,
+	TextSize = 14,
+	AutoButtonColor = false,
 	ZIndex = 4,
 }, topBar)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, previewChip)
-
-local previewStroke = create("UIStroke", {
-	Color = Color3.fromRGB(255, 255, 255),
-	Transparency = 0.7,
-	Thickness = 1,
-}, previewChip)
+create("UICorner", {CornerRadius = UDim.new(1, 0)}, closeButton)
 
 local inputHolder = create("Frame", {
-	Position = UDim2.fromOffset(28, 96),
-	Size = UDim2.fromOffset(484, 72),
-	BackgroundColor3 = Color3.fromRGB(11, 14, 21),
+	Position = UDim2.fromOffset(16, 56),
+	Size = UDim2.fromOffset(398, 54),
+	BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+	BackgroundTransparency = 0.9,
 	BorderSizePixel = 0,
 	ZIndex = 3,
-}, panel)
-create("UICorner", {CornerRadius = UDim.new(0, 18)}, inputHolder)
+}, window)
+create("UICorner", {CornerRadius = UDim.new(0, 14)}, inputHolder)
 
-local inputStroke = create("UIStroke", {
-	Color = Color3.fromRGB(255, 255, 255),
-	Transparency = 0.9,
+create("UIStroke", {
 	Thickness = 1,
+	Color = Color3.fromRGB(255, 255, 255),
+	Transparency = 0.78,
 }, inputHolder)
 
 local textBox = create("TextBox", {
-	Position = UDim2.fromOffset(18, 0),
-	Size = UDim2.new(1, -36, 1, 0),
+	Position = UDim2.fromOffset(14, 0),
+	Size = UDim2.new(1, -28, 1, 0),
 	BackgroundTransparency = 1,
 	ClearTextOnFocus = false,
 	Text = "",
-	PlaceholderText = "Type something here...",
-	PlaceholderColor3 = Color3.fromRGB(103, 110, 128),
-	TextColor3 = Color3.fromRGB(246, 247, 250),
+	PlaceholderText = "Input text...",
+	PlaceholderColor3 = Color3.fromRGB(180, 180, 190),
+	TextColor3 = Color3.fromRGB(255, 255, 255),
 	TextXAlignment = Enum.TextXAlignment.Left,
 	Font = Enum.Font.Gotham,
-	TextSize = 21,
+	TextSize = 18,
 	ZIndex = 4,
 }, inputHolder)
 
 local sliderLabel = create("TextLabel", {
-	Position = UDim2.fromOffset(28, 188),
-	Size = UDim2.fromOffset(160, 20),
+	Position = UDim2.fromOffset(16, 124),
+	Size = UDim2.fromOffset(180, 20),
 	BackgroundTransparency = 1,
 	Text = "Color Slider",
-	TextColor3 = Color3.fromRGB(232, 235, 243),
+	TextColor3 = Color3.fromRGB(235, 235, 245),
 	TextXAlignment = Enum.TextXAlignment.Left,
 	Font = Enum.Font.GothamMedium,
-	TextSize = 15,
-	ZIndex = 3,
-}, panel)
-
-local sliderValueLabel = create("TextLabel", {
-	AnchorPoint = Vector2.new(1, 0),
-	Position = UDim2.new(1, -28, 188),
-	Size = UDim2.fromOffset(90, 20),
-	BackgroundTransparency = 1,
-	Text = "Warm",
-	TextColor3 = Color3.fromRGB(150, 157, 175),
-	TextXAlignment = Enum.TextXAlignment.Right,
-	Font = Enum.Font.Gotham,
 	TextSize = 14,
 	ZIndex = 3,
-}, panel)
+}, window)
 
-local sliderTrack = create("Frame", {
-	Position = UDim2.fromOffset(28, 220),
-	Size = UDim2.fromOffset(484, 14),
-	BackgroundColor3 = Color3.fromRGB(48, 54, 70),
+local preview = create("Frame", {
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -16, 122),
+	Size = UDim2.fromOffset(42, 20),
+	BackgroundColor3 = accentColor(),
 	BorderSizePixel = 0,
 	ZIndex = 3,
-}, panel)
+}, window)
+create("UICorner", {CornerRadius = UDim.new(1, 0)}, preview)
+
+local sliderTrack = create("Frame", {
+	Position = UDim2.fromOffset(16, 150),
+	Size = UDim2.fromOffset(398, 12),
+	BackgroundColor3 = Color3.fromRGB(50, 50, 60),
+	BorderSizePixel = 0,
+	ZIndex = 3,
+}, window)
 create("UICorner", {CornerRadius = UDim.new(1, 0)}, sliderTrack)
 
 create("UIGradient", {
 	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 110, 80)),
-		ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 210, 90)),
-		ColorSequenceKeypoint.new(0.66, Color3.fromRGB(80, 220, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 90, 255)),
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 85)),
+		ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 140, 0)),
+		ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
+		ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 140)),
+		ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 170, 255)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 0, 255)),
 	}),
 }, sliderTrack)
 
-local sliderOverlay = create("Frame", {
-	Size = UDim2.fromScale(1, 1),
+local knob = create("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0, 0.5),
+	Size = UDim2.fromOffset(18, 18),
 	BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-	BackgroundTransparency = 0.7,
 	BorderSizePixel = 0,
 	ZIndex = 4,
 }, sliderTrack)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, sliderOverlay)
-
-local sliderFill = create("Frame", {
-	Size = UDim2.fromScale(hue, 1),
-	BackgroundColor3 = getAccentColor(),
-	BorderSizePixel = 0,
-	ZIndex = 5,
-}, sliderTrack)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, sliderFill)
-
-local sliderKnob = create("Frame", {
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(hue, 0.5),
-	Size = UDim2.fromOffset(24, 24),
-	BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-	BorderSizePixel = 0,
-	ZIndex = 6,
-}, sliderTrack)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, sliderKnob)
+create("UICorner", {CornerRadius = UDim.new(1, 0)}, knob)
 
 create("UIStroke", {
+	Thickness = 1,
 	Color = Color3.fromRGB(255, 255, 255),
 	Transparency = 0.5,
-	Thickness = 1.2,
-}, sliderKnob)
+}, knob)
 
 local sendButton = create("TextButton", {
-	Position = UDim2.fromOffset(28, 256),
-	Size = UDim2.fromOffset(484, 48),
-	BackgroundColor3 = getAccentColor(),
-	AutoButtonColor = false,
+	Position = UDim2.fromOffset(16, 186),
+	Size = UDim2.fromOffset(398, 44),
+	BackgroundColor3 = accentColor(),
+	BorderSizePixel = 0,
 	Text = "Send",
 	TextColor3 = Color3.fromRGB(255, 255, 255),
 	Font = Enum.Font.GothamBold,
-	TextSize = 19,
+	TextSize = 18,
+	AutoButtonColor = false,
 	ZIndex = 3,
-}, panel)
-create("UICorner", {CornerRadius = UDim.new(0, 16)}, sendButton)
+}, window)
+create("UICorner", {CornerRadius = UDim.new(0, 14)}, sendButton)
 
 local sendGradient = create("UIGradient", {
 	Rotation = 0,
 	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, getAccentColor():Lerp(Color3.fromRGB(255, 255, 255), 0.16)),
-		ColorSequenceKeypoint.new(1, getAccentDark()),
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+		ColorSequenceKeypoint.new(1, accentColor()),
 	}),
 }, sendButton)
 
-local messageLabel = create("TextLabel", {
-	AnchorPoint = Vector2.new(0.5, 1),
-	Position = UDim2.new(0.5, 0, 1, -8),
-	Size = UDim2.fromOffset(460, 18),
+local status = create("TextLabel", {
+	Position = UDim2.fromOffset(16, 234),
+	Size = UDim2.fromOffset(398, 12),
 	BackgroundTransparency = 1,
 	Text = "",
-	TextColor3 = Color3.fromRGB(138, 145, 162),
+	TextColor3 = Color3.fromRGB(170, 170, 180),
+	TextXAlignment = Enum.TextXAlignment.Center,
 	Font = Enum.Font.Gotham,
-	TextSize = 13,
+	TextSize = 12,
 	ZIndex = 3,
-}, panel)
+}, window)
 
-local function getColorName(value)
-	if value < 0.18 then
-		return "Warm"
-	elseif value < 0.38 then
-		return "Gold"
-	elseif value < 0.58 then
-		return "Fresh"
-	elseif value < 0.78 then
-		return "Cool"
-	else
-		return "Vivid"
-	end
-end
-
-local function applyAccent(animate)
-	local accent = getAccentColor()
-	local dark = getAccentDark()
-	local light = accent:Lerp(Color3.fromRGB(255, 255, 255), 0.16)
-
-	sliderValueLabel.Text = getColorName(hue)
-
-	if animate then
-		TweenService:Create(sliderFill, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Size = UDim2.fromScale(hue, 1),
-			BackgroundColor3 = accent,
-		}):Play()
-
-		TweenService:Create(sliderKnob, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Position = UDim2.fromScale(hue, 0.5),
-		}):Play()
-
-		TweenService:Create(previewChip, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundColor3 = accent,
-		}):Play()
-
-		TweenService:Create(sendButton, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			BackgroundColor3 = accent,
-		}):Play()
-	else
-		sliderFill.Size = UDim2.fromScale(hue, 1)
-		sliderFill.BackgroundColor3 = accent
-		sliderKnob.Position = UDim2.fromScale(hue, 0.5)
-		previewChip.BackgroundColor3 = accent
-		sendButton.BackgroundColor3 = accent
-	end
-
+local function updateAccent()
+	local color = accentColor()
+	preview.BackgroundColor3 = color
+	sendButton.BackgroundColor3 = color
 	sendGradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, light),
-		ColorSequenceKeypoint.new(1, dark),
+		ColorSequenceKeypoint.new(0, color:Lerp(Color3.new(1, 1, 1), 0.18)),
+		ColorSequenceKeypoint.new(1, color:Lerp(Color3.new(0, 0, 0), 0.25)),
 	})
 end
 
-local function updateSlider(mouseX)
+local function updateSlider(x)
 	local left = sliderTrack.AbsolutePosition.X
 	local width = sliderTrack.AbsoluteSize.X
-	hue = math.clamp((mouseX - left) / width, 0, 1)
-	applyAccent(true)
+	hue = math.clamp((x - left) / width, 0, 1)
+	knob.Position = UDim2.fromScale(hue, 0.5)
+	updateAccent()
 end
 
 sliderTrack.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
+		dragging = "slider"
 		updateSlider(input.Position.X)
 	end
 end)
 
-sliderKnob.InputBegan:Connect(function(input)
+knob.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
+		dragging = "slider"
 		updateSlider(input.Position.X)
+	end
+end)
+
+topBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = "window"
+		dragStart = input.Position
+		startPos = window.Position
 	end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+	if input.UserInputType ~= Enum.UserInputType.MouseMovement then
+		return
+	end
+
+	if dragging == "slider" then
 		updateSlider(input.Position.X)
+	elseif dragging == "window" then
+		local delta = input.Position - dragStart
+		window.Position = UDim2.new(
+			startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y
+		)
+		shadow.Position = window.Position
 	end
 end)
 
@@ -373,64 +319,53 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
-textBox.Focused:Connect(function()
-	TweenService:Create(inputHolder, TweenInfo.new(0.15), {
-		BackgroundColor3 = Color3.fromRGB(15, 18, 27),
-	}):Play()
+closeButton.MouseButton1Click:Connect(function()
+	screenGui:Destroy()
+end)
 
-	TweenService:Create(inputStroke, TweenInfo.new(0.15), {
-		Transparency = 0.72,
-		Color = getAccentColor(),
+closeButton.MouseEnter:Connect(function()
+	TweenService:Create(closeButton, TweenInfo.new(0.12), {
+		BackgroundColor3 = Color3.fromRGB(255, 95, 115)
 	}):Play()
 end)
 
-textBox.FocusLost:Connect(function()
-	TweenService:Create(inputHolder, TweenInfo.new(0.15), {
-		BackgroundColor3 = Color3.fromRGB(11, 14, 21),
-	}):Play()
-
-	TweenService:Create(inputStroke, TweenInfo.new(0.15), {
-		Transparency = 0.9,
-		Color = Color3.fromRGB(255, 255, 255),
+closeButton.MouseLeave:Connect(function()
+	TweenService:Create(closeButton, TweenInfo.new(0.12), {
+		BackgroundColor3 = Color3.fromRGB(255, 70, 90)
 	}):Play()
 end)
 
 sendButton.MouseEnter:Connect(function()
 	TweenService:Create(sendButton, TweenInfo.new(0.12), {
-		Size = UDim2.fromOffset(490, 52),
-		Position = UDim2.fromOffset(25, 254),
+		Size = UDim2.fromOffset(402, 46),
+		Position = UDim2.fromOffset(14, 185)
 	}):Play()
 end)
 
 sendButton.MouseLeave:Connect(function()
 	TweenService:Create(sendButton, TweenInfo.new(0.12), {
-		Size = UDim2.fromOffset(484, 48),
-		Position = UDim2.fromOffset(28, 256),
+		Size = UDim2.fromOffset(398, 44),
+		Position = UDim2.fromOffset(16, 186)
 	}):Play()
 end)
 
 sendButton.MouseButton1Click:Connect(function()
-	local text = textBox.Text
-	if text == "" then
-		text = "Nothing entered"
-	end
-
+	local text = textBox.Text ~= "" and textBox.Text or "Nothing entered"
+	status.Text = "Sent: " .. text
 	sendButton.Text = "Sent"
-	messageLabel.Text = "Last message: " .. text
 	print("Sent text:", text)
 
-	local pressDown = TweenService:Create(sendButton, TweenInfo.new(0.08), {
-		Size = UDim2.fromOffset(478, 46),
-		Position = UDim2.fromOffset(31, 257),
+	local press = TweenService:Create(sendButton, TweenInfo.new(0.08), {
+		Size = UDim2.fromOffset(394, 42),
+		Position = UDim2.fromOffset(18, 187)
 	})
-
 	local release = TweenService:Create(sendButton, TweenInfo.new(0.1), {
-		Size = UDim2.fromOffset(484, 48),
-		Position = UDim2.fromOffset(28, 256),
+		Size = UDim2.fromOffset(398, 44),
+		Position = UDim2.fromOffset(16, 186)
 	})
 
-	pressDown:Play()
-	pressDown.Completed:Wait()
+	press:Play()
+	press.Completed:Wait()
 	release:Play()
 
 	task.delay(1, function()
@@ -440,14 +375,25 @@ sendButton.MouseButton1Click:Connect(function()
 	end)
 end)
 
-panel.Size = UDim2.fromOffset(540, 0)
-panel.ClipsDescendants = true
-TweenService:Create(panel, TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-	Size = UDim2.fromOffset(540, 330),
-}):Play()
+textBox.Focused:Connect(function()
+	TweenService:Create(inputHolder, TweenInfo.new(0.12), {
+		BackgroundTransparency = 0.82
+	}):Play()
+end)
 
-TweenService:Create(shadow, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-	ImageTransparency = 0.35,
-}):Play()
+textBox.FocusLost:Connect(function()
+	TweenService:Create(inputHolder, TweenInfo.new(0.12), {
+		BackgroundTransparency = 0.9
+	}):Play()
+end)
 
-applyAccent(false)
+local rotation = 0
+RunService.RenderStepped:Connect(function(dt)
+	if not neonGradient.Parent then
+		return
+	end
+	rotation += dt * 45
+	neonGradient.Rotation = rotation
+end)
+
+updateAccent()
