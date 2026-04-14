@@ -1,15 +1,15 @@
 --[[
-    NIGHTFALL ELITE: HIJACKER v3.0 (SPAM EDITION)
-    Features: Auto-Char Parser, Arcade Theme, Chat Hijacker, 0.1s Spammer
+    NIGHTFALL ELITE: HIJACKER v3.5
+    INTERCEPT EDITION - AUTO-CHAT & COMPACT UI
 --]]
 
 local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
-sg.Name = "Xeno_Hijacker_V3"
+sg.Name = "Xeno_Hijacker_V3.5"
 
--- MAIN FRAME
+-- COMPACT MAIN FRAME
 local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 420, 0, 400)
-main.Position = UDim2.new(0.5, -210, 0.4, -200)
+main.Size = UDim2.new(0, 350, 0, 280)
+main.Position = UDim2.new(0.5, -175, 0.4, -140)
 main.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
 main.BorderSizePixel = 2
 main.BorderColor3 = Color3.fromRGB(255, 0, 0)
@@ -18,118 +18,106 @@ main.Draggable = true
 
 -- TOP BAR
 local top = Instance.new("Frame", main)
-top.Size = UDim2.new(1, 0, 0, 35)
-top.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+top.Size = UDim2.new(1, 0, 0, 30)
+top.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
 top.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", top)
-title.Size = UDim2.new(1, -10, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
+title.Size = UDim2.new(1, 0, 1, 0)
 title.BackgroundTransparency = 1
-title.Text = "XENO HIJACKER [SPAM MODE]"
+title.Text = "XENO HIJACKER [V3.5]"
 title.Font = Enum.Font.Arcade
 title.TextColor3 = Color3.fromRGB(255, 0, 0)
-title.TextSize = 22
-title.TextXAlignment = Enum.TextXAlignment.Left
+title.TextSize = 18
 
--- INPUT BOX
-local input = Instance.new("TextBox", main)
-input.Size = UDim2.new(0.9, 0, 0, 40)
-input.Position = UDim2.new(0.05, 0, 0.12, 0)
-input.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-input.Font = Enum.Font.Arcade
-input.PlaceholderText = "Payload..."
-input.Text = ""
-input.TextColor3 = Color3.fromRGB(255, 255, 255)
-input.TextSize = 18
-
--- SIZE INPUT
+-- SETTINGS
 local sizeBox = Instance.new("TextBox", main)
-sizeBox.Size = UDim2.new(0.4, 0, 0, 30)
-sizeBox.Position = UDim2.new(0.05, 0, 0.25, 0)
+sizeBox.Size = UDim2.new(0.9, 0, 0, 35)
+sizeBox.Position = UDim2.new(0.05, 0, 0.15, 0)
 sizeBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 sizeBox.Font = Enum.Font.Arcade
-sizeBox.Text = "30"
-sizeBox.TextColor3 = Color3.fromRGB(255, 0, 0)
+sizeBox.Text = "40"
+sizeBox.PlaceholderText = "Font Size..."
+sizeBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- OUTPUT BOX (READ ONLY)
-local output = Instance.new("TextBox", main)
-output.Size = UDim2.new(0.9, 0, 0, 100)
-output.Position = UDim2.new(0.05, 0, 0.38, 0)
-output.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-output.Font = Enum.Font.Arcade
-output.TextColor3 = Color3.fromRGB(150, 150, 150)
-output.TextSize = 12
-output.TextWrapped = true
-output.ClearTextOnFocus = false
-output.ReadOnly = true
-output.Text = "Parsed <p> output..."
+-- AUTO-CHAT TOGGLE
+local autoChat = Instance.new("TextButton", main)
+autoChat.Size = UDim2.new(0.9, 0, 0, 40)
+autoChat.Position = UDim2.new(0.05, 0, 0.32, 0)
+autoChat.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+autoChat.Font = Enum.Font.Arcade
+autoChat.Text = "AUTO-CHAT: OFF"
+autoChat.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoChat.TextSize = 18
 
--- EXECUTE BUTTON
-local fire = Instance.new("TextButton", main)
-fire.Size = UDim2.new(0.9, 0, 0, 40)
-fire.Position = UDim2.new(0.05, 0, 0.68, 0)
-fire.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
-fire.Font = Enum.Font.Arcade
-fire.Text = "SINGLE FIRE"
-fire.TextColor3 = Color3.fromRGB(255, 255, 255)
-fire.TextSize = 22
+-- SEPARATE SPAM SECTION
+local spamFrame = Instance.new("Frame", main)
+spamFrame.Size = UDim2.new(0.9, 0, 0, 100)
+spamFrame.Position = UDim2.new(0.05, 0, 0.55, 0)
+spamFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+spamFrame.BorderSizePixel = 1
+spamFrame.BorderColor3 = Color3.fromRGB(100, 0, 0)
 
--- SPAM BUTTON
-local spamBtn = Instance.new("TextButton", main)
-spamBtn.Size = UDim2.new(0.9, 0, 0, 40)
-spamBtn.Position = UDim2.new(0.05, 0, 0.82, 0)
-spamBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-spamBtn.Font = Enum.Font.Arcade
-spamBtn.Text = "SPAM: OFF"
-spamBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-spamBtn.TextSize = 22
+local spamInput = Instance.new("TextBox", spamFrame)
+spamInput.Size = UDim2.new(1, 0, 0, 40)
+spamInput.BackgroundTransparency = 1
+spamInput.Font = Enum.Font.Arcade
+spamInput.PlaceholderText = "Spam Payload..."
+spamInput.Text = ""
+spamInput.TextColor3 = Color3.fromRGB(255, 255, 255)
 
--- LOGIC: PARSER
-local function update()
-    local raw = input.Text
+local spamToggle = Instance.new("TextButton", spamFrame)
+spamToggle.Size = UDim2.new(1, 0, 0, 40)
+spamToggle.Position = UDim2.new(0, 0, 0.5, 0)
+spamToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+spamToggle.Font = Enum.Font.Arcade
+spamToggle.Text = "START SPAM (0.1s)"
+spamToggle.TextColor3 = Color3.fromRGB(255, 0, 0)
+
+--- LOGIC ---
+
+local function parse(text)
     local sz = sizeBox.Text ~= "" and sizeBox.Text or "30"
-    local parsed = ""
-    for i = 1, #raw do
-        parsed = parsed .. "<p><font size=\""..sz.."\">" .. raw:sub(i, i) .. "</font></p>"
+    local res = ""
+    for i = 1, #text do
+        res = res .. "<p><font size=\""..sz.."\">"..text:sub(i,i).."</font></p>"
     end
-    output.Text = parsed
+    return res
 end
-input:GetPropertyChangedSignal("Text"):Connect(update)
-sizeBox:GetPropertyChangedSignal("Text"):Connect(update)
 
--- LOGIC: REMOTE FINDER & SENDER
-local function sendPayload()
-    -- Attempts to find the most common chat remotes
-    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("SayMessageRequest", true) 
-                   or game:GetService("ReplicatedStorage"):FindFirstChild("ChatMessage", true)
-    
-    if remote then
-        if remote.ClassName == "RemoteEvent" then
-            remote:FireServer(output.Text, "All")
-        elseif remote.ClassName == "RemoteFunction" then
-            remote:InvokeServer(output.Text, "All")
+local function getRemote()
+    return game:GetService("ReplicatedStorage"):FindFirstChild("SayMessageRequest", true) 
+end
+
+-- AUTO-CHAT HOOK
+local hooking = false
+autoChat.MouseButton1Click:Connect(function()
+    hooking = not hooking
+    autoChat.Text = hooking and "AUTO-CHAT: ON" or "AUTO-CHAT: OFF"
+    autoChat.BackgroundColor3 = hooking and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(40, 0, 0)
+end)
+
+game:GetService("Players").LocalPlayer.Chatted:Connect(function(msg)
+    if hooking then
+        local remote = getRemote()
+        if remote then
+            remote:FireServer(parse(msg), "All")
         end
     end
-end
+end)
 
-fire.MouseButton1Click:Connect(sendPayload)
-
--- LOGIC: SPAMMER
+-- SPAM LOGIC
 local spanning = false
-spamBtn.MouseButton1Click:Connect(function()
+spamToggle.MouseButton1Click:Connect(function()
     spanning = not spanning
+    spamToggle.Text = spanning and "STOP SPAM" or "START SPAM (0.1s)"
     if spanning then
-        spamBtn.Text = "SPAM: ON"
-        spamBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
         task.spawn(function()
             while spanning do
-                sendPayload()
+                local remote = getRemote()
+                if remote then remote:FireServer(parse(spamInput.Text), "All") end
                 task.wait(0.1)
             end
         end)
-    else
-        spamBtn.Text = "SPAM: OFF"
-        spamBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     end
 end)
