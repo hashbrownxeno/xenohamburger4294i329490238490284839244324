@@ -1,36 +1,40 @@
 --[[
-    NIGHTFALL ELITE: HIJACKER v2.5
-    Author: hashbrownxeno
+    NIGHTFALL ELITE: HIJACKER v2.6
+    FIX: Corner Radius & Rendering
     Features: Auto-Char Parser, Arcade Theme, Neon Red Glow
 --]]
 
 local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
-sg.Name = "XenoHijacker_Elite"
+sg.Name = "Xeno_Elite_Hijacker"
 
--- THE MAIN FRAME
+-- MAIN FRAME
 local main = Instance.new("Frame", sg)
 main.Size = UDim2.new(0, 420, 0, 320)
 main.Position = UDim2.new(0.5, -210, 0.4, -160)
-main.BackgroundColor3 = Color3.fromRGB(5, 5, 5) -- Vanta Black
+main.BackgroundColor3 = Color3.fromRGB(10, 0, 0) -- Deep Crimson Black
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
 
--- Rounded Corners & Neon Border
+-- Fixed UICorner (using 8 pixels instead of the error variable)
 local corner = Instance.new("UICorner", main)
-corner.CornerRadius = ToolPunch -- Radius 8
+corner.CornerRadius = UDim.new(0, 8)
+
+-- Neon Red Glow
 local glow = Instance.new("UIStroke", main)
-glow.Color = Color3.fromRGB(255, 0, 0) -- Pure Red
+glow.Color = Color3.fromRGB(255, 0, 0)
 glow.Thickness = 2.5
 glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 -- TOP BAR
 local top = Instance.new("Frame", main)
 top.Size = UDim2.new(1, 0, 0, 40)
-top.BackgroundColor3 = Color3.fromRGB(25, 0, 0)
+top.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
 top.BorderSizePixel = 0
 
 local topCorner = Instance.new("UICorner", top)
+topCorner.CornerRadius = UDim.new(0, 8)
+
 local title = Instance.new("TextLabel", top)
 title.Size = UDim2.new(1, -10, 1, 0)
 title.Position = UDim2.new(0, 10, 0, 0)
@@ -45,25 +49,25 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 local function styleInput(obj, pos, size, ph)
     obj.Position = pos
     obj.Size = size
-    obj.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    obj.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     obj.Font = Enum.Font.Arcade
     obj.TextColor3 = Color3.fromRGB(255, 255, 255)
     obj.PlaceholderText = ph
+    obj.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
     obj.TextSize = 18
-    Instance.new("UICorner", obj)
+    obj.Text = ""
+    
+    local c = Instance.new("UICorner", obj)
+    c.CornerRadius = UDim.new(0, 6)
     local s = Instance.new("UIStroke", obj)
-    s.Color = Color3.fromRGB(100, 0, 0)
+    s.Color = Color3.fromRGB(150, 0, 0)
     return obj
 end
 
--- PAYLOAD INPUT
+-- UI ELEMENTS
 local input = styleInput(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.2, 0), UDim2.new(0.9, 0, 0, 40), "Type message...")
-
--- SIZE INPUT
-local sizeInput = styleInput(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "Size (e.g. 40)")
+local sizeInput = styleInput(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "Size (40)")
 sizeInput.Text = "30"
-
--- COLOR INPUT
 local colorInput = styleInput(Instance.new("TextBox", main), UDim2.new(0.55, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "R,G,B")
 colorInput.Text = "255,0,0"
 
@@ -78,18 +82,18 @@ output.TextColor3 = Color3.fromRGB(255, 255, 255)
 output.TextWrapped = true
 output.TextSize = 14
 output.Text = "Awaiting input..."
-Instance.new("UICorner", output)
+local outCorner = Instance.new("UICorner", output)
+outCorner.CornerRadius = UDim.new(0, 6)
 
--- THE AUTOMATIC CHARACTER PARSER
+-- PARSER LOGIC
 local function updateOutput()
     local rawText = input.Text
-    local fontSize = sizeInput.Text or "30"
+    local fontSize = sizeInput.Text ~= "" and sizeInput.Text or "30"
     local color = "rgb("..colorInput.Text..")"
     
     local parsed = ""
     for i = 1, #rawText do
         local char = rawText:sub(i, i)
-        -- The specific requirement: wrap every char in <p> and <font>
         parsed = parsed .. "<p><font size=\""..fontSize.."\" color=\""..color.."\">" .. char .. "</font></p>"
     end
     
