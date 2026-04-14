@@ -1,1 +1,45 @@
+--[[
+    NIGHTFALL ELITE: SILENT AUTO-HIJACKER
+    Target: ModernChatRemote
+    Effect: Auto-converts normal chat to Red Arcade
+--]]
 
+local PLAYER = game:GetService("Players").LocalPlayer
+local REPLICATED_STORAGE = game:GetService("ReplicatedStorage")
+
+-- Config
+local FONT_SIZE = 40
+local HEX_COLOR = "#FF0000" -- Pure Red
+
+-- The <p> Character Parser
+local function parseToArcade(message)
+    local parsed = ""
+    for i = 1, #message do
+        local char = message:sub(i, i)
+        parsed = parsed .. "<p><font face='Arcade' size='" .. FONT_SIZE .. "' color='" .. HEX_COLOR .. "'>" .. char .. "</font></p>"
+    end
+    return parsed
+end
+
+-- The Remote Execution
+local function sendHijackedMessage(msg)
+    local remote = REPLICATED_STORAGE:WaitForChild("ModernChatRemote")
+    if remote then
+        local payload = parseToArcade(msg)
+        
+        -- Your specific argument structure
+        local args = {
+            [1] = payload
+        }
+        
+        remote:FireServer(unpack(args))
+    end
+end
+
+-- Intercept normal chat typing
+PLAYER.Chatted:Connect(function(msg)
+    -- This sends the hijacked Red Arcade version the moment you hit enter
+    sendHijackedMessage(msg)
+end)
+
+print("Xeno Auto-Hijacker Active | Mode: ModernChatRemote | Style: Red Arcade")
