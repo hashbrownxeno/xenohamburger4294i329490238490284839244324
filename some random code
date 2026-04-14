@@ -1,39 +1,26 @@
 --[[
-    NIGHTFALL ELITE: HIJACKER v2.6
-    FIX: Corner Radius & Rendering
-    Features: Auto-Char Parser, Arcade Theme, Neon Red Glow
+    NIGHTFALL ELITE: HIJACKER v2.7
+    STABLE BUILD - ARCADE RED
 --]]
 
 local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
-sg.Name = "Xeno_Elite_Hijacker"
+sg.Name = "Xeno_Stable_Hijacker"
 
 -- MAIN FRAME
 local main = Instance.new("Frame", sg)
 main.Size = UDim2.new(0, 420, 0, 320)
 main.Position = UDim2.new(0.5, -210, 0.4, -160)
-main.BackgroundColor3 = Color3.fromRGB(10, 0, 0) -- Deep Crimson Black
-main.BorderSizePixel = 0
+main.BackgroundColor3 = Color3.fromRGB(15, 0, 0) -- Dark Red-Black
+main.BorderSizePixel = 2
+main.BorderColor3 = Color3.fromRGB(255, 0, 0) -- Solid Red Border
 main.Active = true
 main.Draggable = true
-
--- Fixed UICorner (using 8 pixels instead of the error variable)
-local corner = Instance.new("UICorner", main)
-corner.CornerRadius = UDim.new(0, 8)
-
--- Neon Red Glow
-local glow = Instance.new("UIStroke", main)
-glow.Color = Color3.fromRGB(255, 0, 0)
-glow.Thickness = 2.5
-glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 -- TOP BAR
 local top = Instance.new("Frame", main)
 top.Size = UDim2.new(1, 0, 0, 40)
-top.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+top.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
 top.BorderSizePixel = 0
-
-local topCorner = Instance.new("UICorner", top)
-topCorner.CornerRadius = UDim.new(0, 8)
 
 local title = Instance.new("TextLabel", top)
 title.Size = UDim2.new(1, -10, 1, 0)
@@ -45,61 +32,53 @@ title.TextColor3 = Color3.fromRGB(255, 0, 0)
 title.TextSize = 24
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- HELPER TO STYLE INPUTS
-local function styleInput(obj, pos, size, ph)
+-- STYLE INPUTS
+local function style(obj, pos, size, ph)
     obj.Position = pos
     obj.Size = size
-    obj.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    obj.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     obj.Font = Enum.Font.Arcade
     obj.TextColor3 = Color3.fromRGB(255, 255, 255)
     obj.PlaceholderText = ph
-    obj.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
     obj.TextSize = 18
-    obj.Text = ""
-    
-    local c = Instance.new("UICorner", obj)
-    c.CornerRadius = UDim.new(0, 6)
-    local s = Instance.new("UIStroke", obj)
-    s.Color = Color3.fromRGB(150, 0, 0)
+    obj.BorderSizePixel = 1
+    obj.BorderColor3 = Color3.fromRGB(100, 0, 0)
     return obj
 end
 
--- UI ELEMENTS
-local input = styleInput(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.2, 0), UDim2.new(0.9, 0, 0, 40), "Type message...")
-local sizeInput = styleInput(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "Size (40)")
+local input = style(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.2, 0), UDim2.new(0.9, 0, 0, 40), "Type message...")
+local sizeInput = style(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "Size (30)")
 sizeInput.Text = "30"
-local colorInput = styleInput(Instance.new("TextBox", main), UDim2.new(0.55, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "R,G,B")
+local colorInput = style(Instance.new("TextBox", main), UDim2.new(0.55, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "255,0,0")
 colorInput.Text = "255,0,0"
 
--- OUTPUT DISPLAY
-local output = Instance.new("TextLabel", main)
+-- OUTPUT
+local output = Instance.new("TextBox", main) -- Changed to TextBox so you can copy the tags
 output.Size = UDim2.new(0.9, 0, 0, 120)
 output.Position = UDim2.new(0.05, 0, 0.58, 0)
 output.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-output.RichText = true
 output.Font = Enum.Font.Arcade
 output.TextColor3 = Color3.fromRGB(255, 255, 255)
 output.TextWrapped = true
 output.TextSize = 14
+output.ClearTextOnFocus = false
 output.Text = "Awaiting input..."
-local outCorner = Instance.new("UICorner", output)
-outCorner.CornerRadius = UDim.new(0, 6)
+output.ReadOnly = true
 
--- PARSER LOGIC
-local function updateOutput()
-    local rawText = input.Text
-    local fontSize = sizeInput.Text ~= "" and sizeInput.Text or "30"
-    local color = "rgb("..colorInput.Text..")"
+-- THE PARSER
+local function update()
+    local raw = input.Text
+    local sz = sizeInput.Text ~= "" and sizeInput.Text or "30"
+    local clr = "rgb("..colorInput.Text..")"
     
     local parsed = ""
-    for i = 1, #rawText do
-        local char = rawText:sub(i, i)
-        parsed = parsed .. "<p><font size=\""..fontSize.."\" color=\""..color.."\">" .. char .. "</font></p>"
+    for i = 1, #raw do
+        local c = raw:sub(i, i)
+        parsed = parsed .. "<p><font size=\""..sz.."\" color=\""..clr.."\">" .. c .. "</font></p>"
     end
-    
     output.Text = parsed
 end
 
-input:GetPropertyChangedSignal("Text"):Connect(updateOutput)
-sizeInput:GetPropertyChangedSignal("Text"):Connect(updateOutput)
-colorInput:GetPropertyChangedSignal("Text"):Connect(updateOutput)
+input:GetPropertyChangedSignal("Text"):Connect(update)
+sizeInput:GetPropertyChangedSignal("Text"):Connect(update)
+colorInput:GetPropertyChangedSignal("Text"):Connect(update)
