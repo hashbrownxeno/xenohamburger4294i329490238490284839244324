@@ -1,399 +1,111 @@
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+--[[
+    NIGHTFALL ELITE: HIJACKER v2.9
+    STABLE ARCADE BUILD
+--]]
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
+sg.Name = "Xeno_Elite_Hijacker"
 
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "NeonGlassGui"
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = playerGui
+-- MAIN FRAME
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(0, 420, 0, 350)
+main.Position = UDim2.new(0.5, -210, 0.4, -175)
+main.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+main.BorderSizePixel = 2
+main.BorderColor3 = Color3.fromRGB(255, 0, 0) -- Pure Red Border
+main.Active = true
+main.Draggable = true
 
-local hue = 0
-local dragging = false
-local dragStart
-local startPos
+-- TOP BAR
+local top = Instance.new("Frame", main)
+top.Size = UDim2.new(1, 0, 0, 35)
+top.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+top.BorderSizePixel = 0
 
-local function create(className, props, parent)
-	local obj = Instance.new(className)
-	for k, v in pairs(props) do
-		obj[k] = v
-	end
-	obj.Parent = parent
-	return obj
+local title = Instance.new("TextLabel", top)
+title.Size = UDim2.new(1, -10, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "XENO HIJACKER [ARCADE]"
+title.Font = Enum.Font.Arcade
+title.TextColor3 = Color3.fromRGB(255, 0, 0)
+title.TextSize = 22
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- INPUT BOX (Type here)
+local input = Instance.new("TextBox", main)
+input.Size = UDim2.new(0.9, 0, 0, 45)
+input.Position = UDim2.new(0.05, 0, 0.15, 0)
+input.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+input.BorderSizePixel = 1
+input.BorderColor3 = Color3.fromRGB(150, 0, 0)
+input.Font = Enum.Font.Arcade
+input.PlaceholderText = "Input Text..."
+input.Text = ""
+input.TextColor3 = Color3.fromRGB(255, 255, 255)
+input.TextSize = 20
+
+-- SIZE INPUT
+local sizeBox = Instance.new("TextBox", main)
+sizeBox.Size = UDim2.new(0.4, 0, 0, 35)
+sizeBox.Position = UDim2.new(0.05, 0, 0.32, 0)
+sizeBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+sizeBox.BorderSizePixel = 1
+sizeBox.BorderColor3 = Color3.fromRGB(150, 0, 0)
+sizeBox.Font = Enum.Font.Arcade
+sizeBox.Text = "30"
+sizeBox.TextColor3 = Color3.fromRGB(255, 0, 0)
+sizeBox.TextSize = 18
+
+-- OUTPUT BOX (Displays the <p> tags)
+local output = Instance.new("TextBox", main)
+output.Size = UDim2.new(0.9, 0, 0, 120)
+output.Position = UDim2.new(0.05, 0, 0.48, 0)
+output.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+output.BorderSizePixel = 1
+output.BorderColor3 = Color3.fromRGB(100, 0, 0)
+output.Font = Enum.Font.Arcade
+output.TextColor3 = Color3.fromRGB(200, 200, 200)
+output.TextSize = 14
+output.TextWrapped = true
+output.ClearTextOnFocus = false
+output.Text = "Result..."
+output.ReadOnly = true
+
+-- EXECUTE BUTTON
+local fire = Instance.new("TextButton", main)
+fire.Size = UDim2.new(0.9, 0, 0, 45)
+fire.Position = UDim2.new(0.05, 0, 0.83, 0)
+fire.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+fire.BorderSizePixel = 0
+fire.Font = Enum.Font.Arcade
+fire.Text = "EXECUTE HIJACK"
+fire.TextColor3 = Color3.fromRGB(255, 255, 255)
+fire.TextSize = 22
+
+-- LOGIC: AUTOMATIC <p> PARSER
+local function update()
+    local raw = input.Text
+    local sz = sizeBox.Text ~= "" and sizeBox.Text or "30"
+    local parsed = ""
+    
+    for i = 1, #raw do
+        local char = raw:sub(i, i)
+        -- The custom <p> wrap logic
+        parsed = parsed .. "<p><font size=\""..sz.."\">" .. char .. "</font></p>"
+    end
+    output.Text = parsed
 end
 
-local function accentColor()
-	return Color3.fromHSV(hue, 1, 1)
-end
+input:GetPropertyChangedSignal("Text"):Connect(update)
+sizeBox:GetPropertyChangedSignal("Text"):Connect(update)
 
-local shadow = create("ImageLabel", {
-	Name = "Shadow",
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.new(0.5, 0, 0.5, 0),
-	Size = UDim2.fromOffset(470, 290),
-	BackgroundTransparency = 1,
-	Image = "rbxassetid://6015897843",
-	ImageTransparency = 0.35,
-	ScaleType = Enum.ScaleType.Slice,
-	SliceCenter = Rect.new(49, 49, 450, 450),
-	ZIndex = 0,
-}, screenGui)
-
-local window = create("Frame", {
-	Name = "Window",
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.new(0.5, 0, 0.5, 0),
-	Size = UDim2.fromOffset(430, 250),
-	BackgroundColor3 = Color3.fromRGB(18, 18, 24),
-	BackgroundTransparency = 0.2,
-	BorderSizePixel = 0,
-	ZIndex = 1,
-}, screenGui)
-create("UICorner", {CornerRadius = UDim.new(0, 18)}, window)
-
-create("UIStroke", {
-	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-	Thickness = 1,
-	Color = Color3.fromRGB(255, 255, 255),
-	Transparency = 0.82,
-}, window)
-
-create("UIGradient", {
-	Rotation = 90,
-	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 45)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 24)),
-	}),
-}, window)
-
-local neon = create("Frame", {
-	Name = "NeonOutline",
-	Size = UDim2.new(1, 6, 1, 6),
-	Position = UDim2.new(0, -3, 0, -3),
-	BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-	BackgroundTransparency = 0.25,
-	BorderSizePixel = 0,
-	ZIndex = 0,
-}, window)
-create("UICorner", {CornerRadius = UDim.new(0, 20)}, neon)
-
-local neonStroke = create("UIStroke", {
-	Thickness = 2,
-	Color = Color3.fromRGB(255, 0, 0),
-	Transparency = 0.15,
-}, neon)
-
-local neonGradient = create("UIGradient", {
-	Rotation = 0,
-	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 85)),
-		ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 140, 0)),
-		ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
-		ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 140)),
-		ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 170, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 0, 255)),
-	}),
-}, neon)
-
-local topBar = create("Frame", {
-	Name = "TopBar",
-	Size = UDim2.new(1, 0, 0, 42),
-	BackgroundTransparency = 1,
-	ZIndex = 3,
-}, window)
-
-local title = create("TextLabel", {
-	Position = UDim2.fromOffset(16, 10),
-	Size = UDim2.fromOffset(220, 22),
-	BackgroundTransparency = 1,
-	Text = "Neon Input",
-	TextColor3 = Color3.fromRGB(255, 255, 255),
-	TextXAlignment = Enum.TextXAlignment.Left,
-	Font = Enum.Font.GothamBold,
-	TextSize = 20,
-	ZIndex = 4,
-}, topBar)
-
-local closeButton = create("TextButton", {
-	Name = "CloseButton",
-	AnchorPoint = Vector2.new(1, 0),
-	Position = UDim2.new(1, -10, 0, 8),
-	Size = UDim2.fromOffset(26, 26),
-	BackgroundColor3 = Color3.fromRGB(255, 70, 90),
-	Text = "X",
-	TextColor3 = Color3.fromRGB(255, 255, 255),
-	Font = Enum.Font.GothamBold,
-	TextSize = 14,
-	AutoButtonColor = false,
-	ZIndex = 4,
-}, topBar)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, closeButton)
-
-local inputHolder = create("Frame", {
-	Position = UDim2.fromOffset(16, 56),
-	Size = UDim2.fromOffset(398, 54),
-	BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-	BackgroundTransparency = 0.9,
-	BorderSizePixel = 0,
-	ZIndex = 3,
-}, window)
-create("UICorner", {CornerRadius = UDim.new(0, 14)}, inputHolder)
-
-create("UIStroke", {
-	Thickness = 1,
-	Color = Color3.fromRGB(255, 255, 255),
-	Transparency = 0.78,
-}, inputHolder)
-
-local textBox = create("TextBox", {
-	Position = UDim2.fromOffset(14, 0),
-	Size = UDim2.new(1, -28, 1, 0),
-	BackgroundTransparency = 1,
-	ClearTextOnFocus = false,
-	Text = "",
-	PlaceholderText = "Input text...",
-	PlaceholderColor3 = Color3.fromRGB(180, 180, 190),
-	TextColor3 = Color3.fromRGB(255, 255, 255),
-	TextXAlignment = Enum.TextXAlignment.Left,
-	Font = Enum.Font.Gotham,
-	TextSize = 18,
-	ZIndex = 4,
-}, inputHolder)
-
-local sliderLabel = create("TextLabel", {
-	Position = UDim2.fromOffset(16, 124),
-	Size = UDim2.fromOffset(180, 20),
-	BackgroundTransparency = 1,
-	Text = "Color Slider",
-	TextColor3 = Color3.fromRGB(235, 235, 245),
-	TextXAlignment = Enum.TextXAlignment.Left,
-	Font = Enum.Font.GothamMedium,
-	TextSize = 14,
-	ZIndex = 3,
-}, window)
-
-local preview = create("Frame", {
-	AnchorPoint = Vector2.new(1, 0),
-	Position = UDim2.new(1, -16, 122),
-	Size = UDim2.fromOffset(42, 20),
-	BackgroundColor3 = accentColor(),
-	BorderSizePixel = 0,
-	ZIndex = 3,
-}, window)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, preview)
-
-local sliderTrack = create("Frame", {
-	Position = UDim2.fromOffset(16, 150),
-	Size = UDim2.fromOffset(398, 12),
-	BackgroundColor3 = Color3.fromRGB(50, 50, 60),
-	BorderSizePixel = 0,
-	ZIndex = 3,
-}, window)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, sliderTrack)
-
-create("UIGradient", {
-	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 85)),
-		ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 140, 0)),
-		ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
-		ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 140)),
-		ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 170, 255)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 0, 255)),
-	}),
-}, sliderTrack)
-
-local knob = create("Frame", {
-	AnchorPoint = Vector2.new(0.5, 0.5),
-	Position = UDim2.fromScale(0, 0.5),
-	Size = UDim2.fromOffset(18, 18),
-	BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-	BorderSizePixel = 0,
-	ZIndex = 4,
-}, sliderTrack)
-create("UICorner", {CornerRadius = UDim.new(1, 0)}, knob)
-
-create("UIStroke", {
-	Thickness = 1,
-	Color = Color3.fromRGB(255, 255, 255),
-	Transparency = 0.5,
-}, knob)
-
-local sendButton = create("TextButton", {
-	Position = UDim2.fromOffset(16, 186),
-	Size = UDim2.fromOffset(398, 44),
-	BackgroundColor3 = accentColor(),
-	BorderSizePixel = 0,
-	Text = "Send",
-	TextColor3 = Color3.fromRGB(255, 255, 255),
-	Font = Enum.Font.GothamBold,
-	TextSize = 18,
-	AutoButtonColor = false,
-	ZIndex = 3,
-}, window)
-create("UICorner", {CornerRadius = UDim.new(0, 14)}, sendButton)
-
-local sendGradient = create("UIGradient", {
-	Rotation = 0,
-	Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-		ColorSequenceKeypoint.new(1, accentColor()),
-	}),
-}, sendButton)
-
-local status = create("TextLabel", {
-	Position = UDim2.fromOffset(16, 234),
-	Size = UDim2.fromOffset(398, 12),
-	BackgroundTransparency = 1,
-	Text = "",
-	TextColor3 = Color3.fromRGB(170, 170, 180),
-	TextXAlignment = Enum.TextXAlignment.Center,
-	Font = Enum.Font.Gotham,
-	TextSize = 12,
-	ZIndex = 3,
-}, window)
-
-local function updateAccent()
-	local color = accentColor()
-	preview.BackgroundColor3 = color
-	sendButton.BackgroundColor3 = color
-	sendGradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, color:Lerp(Color3.new(1, 1, 1), 0.18)),
-		ColorSequenceKeypoint.new(1, color:Lerp(Color3.new(0, 0, 0), 0.25)),
-	})
-end
-
-local function updateSlider(x)
-	local left = sliderTrack.AbsolutePosition.X
-	local width = sliderTrack.AbsoluteSize.X
-	hue = math.clamp((x - left) / width, 0, 1)
-	knob.Position = UDim2.fromScale(hue, 0.5)
-	updateAccent()
-end
-
-sliderTrack.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = "slider"
-		updateSlider(input.Position.X)
-	end
+-- REMOTE TRIGGER (Standard SayMessageRequest Template)
+fire.MouseButton1Click:Connect(function()
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("SayMessageRequest", true)
+    if remote then
+        remote:FireServer(output.Text, "All")
+    else
+        warn("Target Remote not found.")
+    end
 end)
-
-knob.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = "slider"
-		updateSlider(input.Position.X)
-	end
-end)
-
-topBar.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = "window"
-		dragStart = input.Position
-		startPos = window.Position
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if input.UserInputType ~= Enum.UserInputType.MouseMovement then
-		return
-	end
-
-	if dragging == "slider" then
-		updateSlider(input.Position.X)
-	elseif dragging == "window" then
-		local delta = input.Position - dragStart
-		window.Position = UDim2.new(
-			startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y
-		)
-		shadow.Position = window.Position
-	end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = false
-	end
-end)
-
-closeButton.MouseButton1Click:Connect(function()
-	screenGui:Destroy()
-end)
-
-closeButton.MouseEnter:Connect(function()
-	TweenService:Create(closeButton, TweenInfo.new(0.12), {
-		BackgroundColor3 = Color3.fromRGB(255, 95, 115)
-	}):Play()
-end)
-
-closeButton.MouseLeave:Connect(function()
-	TweenService:Create(closeButton, TweenInfo.new(0.12), {
-		BackgroundColor3 = Color3.fromRGB(255, 70, 90)
-	}):Play()
-end)
-
-sendButton.MouseEnter:Connect(function()
-	TweenService:Create(sendButton, TweenInfo.new(0.12), {
-		Size = UDim2.fromOffset(402, 46),
-		Position = UDim2.fromOffset(14, 185)
-	}):Play()
-end)
-
-sendButton.MouseLeave:Connect(function()
-	TweenService:Create(sendButton, TweenInfo.new(0.12), {
-		Size = UDim2.fromOffset(398, 44),
-		Position = UDim2.fromOffset(16, 186)
-	}):Play()
-end)
-
-sendButton.MouseButton1Click:Connect(function()
-	local text = textBox.Text ~= "" and textBox.Text or "Nothing entered"
-	status.Text = "Sent: " .. text
-	sendButton.Text = "Sent"
-	print("Sent text:", text)
-
-	local press = TweenService:Create(sendButton, TweenInfo.new(0.08), {
-		Size = UDim2.fromOffset(394, 42),
-		Position = UDim2.fromOffset(18, 187)
-	})
-	local release = TweenService:Create(sendButton, TweenInfo.new(0.1), {
-		Size = UDim2.fromOffset(398, 44),
-		Position = UDim2.fromOffset(16, 186)
-	})
-
-	press:Play()
-	press.Completed:Wait()
-	release:Play()
-
-	task.delay(1, function()
-		if sendButton.Parent then
-			sendButton.Text = "Send"
-		end
-	end)
-end)
-
-textBox.Focused:Connect(function()
-	TweenService:Create(inputHolder, TweenInfo.new(0.12), {
-		BackgroundTransparency = 0.82
-	}):Play()
-end)
-
-textBox.FocusLost:Connect(function()
-	TweenService:Create(inputHolder, TweenInfo.new(0.12), {
-		BackgroundTransparency = 0.9
-	}):Play()
-end)
-
-local rotation = 0
-RunService.RenderStepped:Connect(function(dt)
-	if not neonGradient.Parent then
-		return
-	end
-	rotation += dt * 45
-	neonGradient.Rotation = rotation
-end)
-
-updateAccent()
