@@ -1,25 +1,30 @@
 --[[
-    NIGHTFALL ELITE: HIJACKER v2.7
-    STABLE BUILD - ARCADE RED
+    NIGHTFALL ELITE: HIJACKER v2.8 (STABLE & WIRED)
+    Features: Auto-Char Parser, Arcade Theme, Remote Integration
 --]]
 
-local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
-sg.Name = "Xeno_Stable_Hijacker"
+-- CONFIG: Change these to match your target game's remote
+local REMOTE_NAME = "SayMessageRequest" 
+local REMOTE_PATH = game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents") 
+local TARGET_REMOTE = REMOTE_PATH and REMOTE_PATH:FindFirstChild(REMOTE_NAME)
 
--- MAIN FRAME
+local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
+sg.Name = "Xeno_Elite_Hijacker"
+
+-- MAIN FRAME (Solid Red Border to prevent rendering crashes)
 local main = Instance.new("Frame", sg)
-main.Size = UDim2.new(0, 420, 0, 320)
-main.Position = UDim2.new(0.5, -210, 0.4, -160)
-main.BackgroundColor3 = Color3.fromRGB(15, 0, 0) -- Dark Red-Black
+main.Size = UDim2.new(0, 420, 0, 350)
+main.Position = UDim2.new(0.5, -210, 0.4, -175)
+main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 main.BorderSizePixel = 2
-main.BorderColor3 = Color3.fromRGB(255, 0, 0) -- Solid Red Border
+main.BorderColor3 = Color3.fromRGB(255, 0, 0)
 main.Active = true
 main.Draggable = true
 
 -- TOP BAR
 local top = Instance.new("Frame", main)
 top.Size = UDim2.new(1, 0, 0, 40)
-top.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+top.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
 top.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", top)
@@ -29,56 +34,72 @@ title.BackgroundTransparency = 1
 title.Text = "XENO HIJACKER [ARCADE]"
 title.Font = Enum.Font.Arcade
 title.TextColor3 = Color3.fromRGB(255, 0, 0)
-title.TextSize = 24
+title.TextSize = 22
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- STYLE INPUTS
-local function style(obj, pos, size, ph)
-    obj.Position = pos
-    obj.Size = size
-    obj.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    obj.Font = Enum.Font.Arcade
-    obj.TextColor3 = Color3.fromRGB(255, 255, 255)
-    obj.PlaceholderText = ph
-    obj.TextSize = 18
-    obj.BorderSizePixel = 1
-    obj.BorderColor3 = Color3.fromRGB(100, 0, 0)
-    return obj
-end
+-- INPUTS
+local input = Instance.new("TextBox", main)
+input.Size = UDim2.new(0.9, 0, 0, 40)
+input.Position = UDim2.new(0.05, 0, 0.15, 0)
+input.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+input.Font = Enum.Font.Arcade
+input.PlaceholderText = "Type message..."
+input.Text = ""
+input.TextColor3 = Color3.fromRGB(255, 255, 255)
+input.TextSize = 18
 
-local input = style(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.2, 0), UDim2.new(0.9, 0, 0, 40), "Type message...")
-local sizeInput = style(Instance.new("TextBox", main), UDim2.new(0.05, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "Size (30)")
+local sizeInput = Instance.new("TextBox", main)
+sizeInput.Size = UDim2.new(0.4, 0, 0, 30)
+sizeInput.Position = UDim2.new(0.05, 0, 0.3, 0)
+sizeInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+sizeInput.Font = Enum.Font.Arcade
 sizeInput.Text = "30"
-local colorInput = style(Instance.new("TextBox", main), UDim2.new(0.55, 0, 0.4, 0), UDim2.new(0.4, 0, 0, 35), "255,0,0")
-colorInput.Text = "255,0,0"
+sizeInput.TextColor3 = Color3.fromRGB(255, 0, 0)
 
--- OUTPUT
-local output = Instance.new("TextBox", main) -- Changed to TextBox so you can copy the tags
-output.Size = UDim2.new(0.9, 0, 0, 120)
-output.Position = UDim2.new(0.05, 0, 0.58, 0)
+-- OUTPUT BOX
+local output = Instance.new("TextBox", main)
+output.Size = UDim2.new(0.9, 0, 0, 100)
+output.Position = UDim2.new(0.05, 0, 0.45, 0)
 output.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 output.Font = Enum.Font.Arcade
-output.TextColor3 = Color3.fromRGB(255, 255, 255)
-output.TextWrapped = true
+output.TextColor3 = Color3.fromRGB(200, 200, 200)
 output.TextSize = 14
+output.TextWrapped = true
 output.ClearTextOnFocus = false
-output.Text = "Awaiting input..."
-output.ReadOnly = true
+output.Text = "Parsed text here..."
 
--- THE PARSER
+-- FIRE BUTTON (The Hijacker Trigger)
+local fire = Instance.new("TextButton", main)
+fire.Size = UDim2.new(0.9, 0, 0, 40)
+fire.Position = UDim2.new(0.05, 0, 0.8, 0)
+fire.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+fire.Font = Enum.Font.Arcade
+fire.Text = "EXECUTE HIJACK"
+fire.TextColor3 = Color3.fromRGB(255, 255, 255)
+fire.TextSize = 20
+
+-- LOGIC: THE AUTO-PARSER
 local function update()
     local raw = input.Text
     local sz = sizeInput.Text ~= "" and sizeInput.Text or "30"
-    local clr = "rgb("..colorInput.Text..")"
-    
     local parsed = ""
     for i = 1, #raw do
         local c = raw:sub(i, i)
-        parsed = parsed .. "<p><font size=\""..sz.."\" color=\""..clr.."\">" .. c .. "</font></p>"
+        parsed = parsed .. "<p><font size=\""..sz.."\">" .. c .. "</font></p>"
     end
     output.Text = parsed
 end
 
 input:GetPropertyChangedSignal("Text"):Connect(update)
 sizeInput:GetPropertyChangedSignal("Text"):Connect(update)
-colorInput:GetPropertyChangedSignal("Text"):Connect(update)
+
+-- LOGIC: THE REMOTE TRIGGER
+fire.MouseButton1Click:Connect(function()
+    if TARGET_REMOTE then
+        -- This fires the parsed <p> tags into the remote
+        TARGET_REMOTE:FireServer(output.Text, "All")
+        print("Payload Sent: " .. output.Text)
+    else
+        warn("Remote not found! Check REMOTE_NAME at the top.")
+    end
+end)
