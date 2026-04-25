@@ -2,20 +2,25 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local root = character:WaitForChild("HumanoidRootPart")
 
--- UI (Same as before)
+-- UI 
 local ScreenGui = Instance.new("ScreenGui")
 local KickButton = Instance.new("TextButton")
 ScreenGui.Parent = game.CoreGui
 KickButton.Parent = ScreenGui
-KickButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+KickButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green for "Go"
 KickButton.Position = UDim2.new(0.7, 0, 0.5, 0)
 KickButton.Size = UDim2.new(0, 100, 0, 100)
-KickButton.Text = "DROPKICK"
+KickButton.Text = "FLING KICK"
 KickButton.TextScaled = true
 KickButton.Draggable = true
 
+-- The "Netless" Fix: This helps bypass some FE protections
+local function setNetless(part)
+    part.Velocity = Vector3.new(0, -30, 0) -- Constant slight downward force tricks the server
+end
+
 local function getNearest()
-    local closest, dist = nil, 25
+    local closest, dist = nil, 20
     for _, v in pairs(game.Players:GetPlayers()) do
         if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
             local d = (v.Character.HumanoidRootPart.Position - root.Position).Magnitude
@@ -33,39 +38,36 @@ KickButton.MouseButton1Click:Connect(function()
     if target and target.Character:FindFirstChild("HumanoidRootPart") then
         local targetRoot = target.Character.HumanoidRootPart
         
-        -- 1. Lock your Y-axis (Prevents going up)
-        local bg = Instance.new("BodyGyro")
-        bg.Parent = root
-        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bg.CFrame = root.CFrame -- Keep you upright/tilted exactly as you are
-        
-        -- 2. Massive Spinning Force
-        local bav = Instance.new("BodyAngularVelocity")
-        bav.Parent = root
-        bav.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bav.AngularVelocity = Vector3.new(0, 999999, 0)
+        -- 1. Create a "Thrust" instead of just Angular Velocity
+        local thrust = Instance.new("BodyThrust")
+        thrust.Parent = root
+        thrust.Force = Vector3.new(9999, 9999, 9999) -- Extreme raw force
+        thrust.Location = Vector3.new(0, 0, 5) -- Offset makes you "wobble" into them, causing a fling
 
-        -- 3. The "Ghost" Phase
-        for _, p in pairs(character:GetDestendants()) do
+        -- 2. Make yourself non-collidable so you don't fly too
+        for _, p in pairs(character:GetDescendants()) do
             if p:IsA("BasePart") then p.CanCollide = false end
         end
 
-        -- 4. Execute the hit
-        root.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 1) -- Lunge into them
-        task.wait(0.1) -- Very short hit window
+        -- 3. The "Dropkick" Lunge
+        root.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 1.2)
+        
+        -- 4. Netless Loop (Briefly)
+        local connection
+        connection = game:GetService("RunService").Heartbeat:Connect(function()
+            setNetless(root)
+        end)
 
-        -- 5. THE FIX: Stop all movement instantly
-        bav:Destroy()
-        bg:Destroy()
-        root.Velocity = Vector3.new(0, 0, 0)
-        root.RotVelocity = Vector3.new(0, 0, 0)
-        
-        -- 6. Brief Anchor (This stops the "Heaven" trip)
-        root.Anchored = true
-        task.wait(0.1)
+        task.wait(0.15) -- Speed is key
+
+        -- 5. Cleanup
+        connection:Disconnect()
+        thrust:Destroy()
+        root.Velocity = Vector3.new(0,0,0)
+        root.Anchored = true -- Instant stop
+        task.wait(0.05)
         root.Anchored = false
-        
-        -- Reset Collisions
+
         for _, p in pairs(character:GetDescendants()) do
             if p:IsA("BasePart") then p.CanCollide = true end
         end
